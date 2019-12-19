@@ -6,3 +6,10 @@ Due to the large project size, you can direct download the project by following 
 
 Nonetheless, source code of the shaders and scripts will be added.
 
+
+
+ 
+Known Issues(will be fixed at the next edition):
+ 1. Shadowmap is not been used to guide the light marching.
+ 2. Gaussian Blur diminishes the smoke's edges with the opaque geometry
+ 
