@@ -1,0 +1,155 @@
+﻿#pragma kernel CSWorley
+
+
+static const int numThreads = 8;
+static const int minMaxAccuracy = 10000000;
+
+
+float3 resolution;
+RWTexture3D<float4> Result;
+RWStructuredBuffer<int> minMax;
+StructuredBuffer<float3> points0;
+StructuredBuffer<float3> points1;
+StructuredBuffer<float3> points2;
+StructuredBuffer<float3> points3;
+StructuredBuffer<float3> points4;
+StructuredBuffer<float3> points5;
+StructuredBuffer<float3> points6;
+StructuredBuffer<float3> points7;
+StructuredBuffer<float3> points8;
+StructuredBuffer<float3> points9;
+StructuredBuffer<float3> points10;
+StructuredBuffer<float3> points11;
+StructuredBuffer<float3> points12;
+StructuredBuffer<float3> points13;
+StructuredBuffer<float3> points14;
+StructuredBuffer<float3> points15;
+StructuredBuffer<float3> points16;
+StructuredBuffer<float3> points17;
+StructuredBuffer<float3> points18;
+StructuredBuffer<float3> points19;
+StructuredBuffer<float3> points20;
+StructuredBuffer<float3> points21;
+StructuredBuffer<float3> points22;
+StructuredBuffer<float3> points23;
+StructuredBuffer<float3> points24;
+StructuredBuffer<float3> points25;
+StructuredBuffer<float3> points26;
+StructuredBuffer<float3> points27;
+StructuredBuffer<float3> points28;
+StructuredBuffer<float3> points29;
+StructuredBuffer<float3> points30;
+StructuredBuffer<float3> points31;
+
+
+
+float4 channelMask;
+float persistence;
+bool invertNoise;
+int tile;
+int offset;
+
+
+int VoxelsToIndex(float3 xyz)
+{
+	int x = floor(-xyz.x);
+	int y = floor(-xyz.z);
+	int z = floor(xyz.y);
+	int index = x + y * 90 + z * 60 * 90;
+	return index;
+}
+
+float worley(StructuredBuffer<float3> points, float3 samplePos)
+{
+	float minDist = 1000000.0;
+	float3 posWorld = float3(samplePos.x * (-90.0), samplePos.y * 40.0, samplePos.z * (-60.0));
+	for (float x = posWorld.x - 1.0f; x < posWorld.x + 2.0f; x++)
+	{
+		for (float y = posWorld.y - 1.0f; y < posWorld.y + 2.0f; y++)
+		{
+			for (float z = posWorld.z - 1.0f; z < posWorld.z + 2.0f; z++)
+			{
+				
+				float3 xyz = float3(x, y, z);
+				float3 p = points[VoxelsToIndex(xyz)];
+				if (p.x > 9.0)
+					continue;
+				float3 diff = posWorld - p;
+				float dist = sqrt(dot(diff, diff));
+				minDist = min(dist, minDist);
+			}
+		}
+	}
+	return min(abs(minDist),3);
+}
+
+[numthreads(numThreads, numThreads, numThreads)]
+void CSWorley(uint3 id : SV_DispatchThreadID)
+{
+	
+		
+		float3 pos = float3(id.x / (float)resolution.x, id.y / (float)resolution.y, (id.z+offset) / (float)resolution.z);
+		
+
+		float noiseSumR = 0;
+		float noiseSumG = 0;
+		float noiseSumB = 0;
+		float noiseSumA = 0;
+		float n1 = worley(points0, pos);
+		float n2 = worley(points1, pos);
+		float n3 = worley(points2, pos);
+		float n4 = worley(points3, pos);
+		float n5 = worley(points4, pos);
+		float n6 = worley(points5, pos);
+		float n7 = worley(points6, pos);
+		float n8 = worley(points7, pos);
+		float n9 = worley(points8, pos);
+		float n10 = worley(points9, pos);
+		float n11 = worley(points10, pos);
+		float n12 = worley(points11, pos);
+		float n13 = worley(points12, pos);
+	    float n14 = worley(points13, pos);
+		float n15 = worley(points14, pos);
+		float n16 = worley(points15, pos);
+		float n17 = worley(points16, pos);
+		float n18 = worley(points17, pos);
+		float n19 = worley(points18, pos);
+		float n20 = worley(points19, pos);
+		float n21 = worley(points20, pos);
+		float n22 = worley(points21, pos);
+		float n23 = worley(points22, pos);
+		float n24 = worley(points23, pos);
+		float n25 = worley(points24, pos);
+		float n26 = worley(points25, pos);
+		float n27 = worley(points26, pos);
+		float n28 = worley(points27, pos);
+		float n29 = worley(points28, pos);
+		float n30 = worley(points29, pos);
+		float n31 = worley(points30, pos);
+		float n32 = worley(points31, pos);
+		noiseSumR = n1 + n2 + n3 + n4 + n5 + n6 + n7 + n8;
+		noiseSumG = noiseSumR + n9 + n10 + n11 + n12 + n13 + n14 + n15 + n16;
+		noiseSumB = noiseSumG + n17 + n18 + n19 + n20 + n21 + n22 + n23 + n24;
+		noiseSumA = noiseSumB + n25 + n26 + n27 + n28 + n29 + n30 + n31 + n32;
+		
+		noiseSumR /= 3 * 8;
+		noiseSumG /= 3 * 16;
+		noiseSumB /= 3 * 24;
+		noiseSumA /= 3 * 32;
+		
+		if (invertNoise) {
+			noiseSumR = 1 - noiseSumR;
+			noiseSumG = 1 - noiseSumG;
+			noiseSumB = 1 - noiseSumB;
+			noiseSumA = 1 - noiseSumA;
+		}
+
+		
+
+	
+		Result[uint3(id.x, id.y, id.z+offset )] = float4(noiseSumR,noiseSumG,noiseSumB,noiseSumA);
+
+		
+	
+}
+
